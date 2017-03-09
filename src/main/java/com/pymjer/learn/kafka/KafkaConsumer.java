@@ -4,6 +4,7 @@ import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
+import kafka.message.MessageAndMetadata;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,15 +20,15 @@ public class KafkaConsumer extends Thread {
 
     public KafkaConsumer(String topic) {
         consumer = kafka.consumer.Consumer.createJavaConsumerConnector(
-                createConsumerConfig());
+                createConsumerConfig(topic));
         this.topic = topic;
     }
 
-    private static ConsumerConfig createConsumerConfig() {
+    private static ConsumerConfig createConsumerConfig(String topic) {
         Properties props = new Properties();
         props.put("zookeeper.connect", KafkaProperties.zkConnect);
         props.put("group.id", KafkaProperties.groupId);
-        props.put("topic.name", KafkaProperties.topic);
+        props.put("topic.name", topic);
         props.put("rebalance.backoff.ms", "10000");
         props.put("rebalance.max.retries", "10");
         props.put("auto.offset.reset", "smallest");
@@ -47,9 +48,10 @@ public class KafkaConsumer extends Thread {
         KafkaStream<byte[], byte[]> stream = consumerMap.get(topic).get(0);
         ConsumerIterator<byte[], byte[]> it = stream.iterator();
         while (it.hasNext()) {
-            System.out.println("receive：" + new String(it.next().message()));
+            MessageAndMetadata<byte[], byte[]> next = it.next();
+            System.out.println(String.format("Partition:%s, receive message：%s",next.partition(),new String(next.message())));
             try {
-                sleep(3000);
+                sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

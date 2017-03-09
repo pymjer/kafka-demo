@@ -4,11 +4,12 @@ import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 
+import java.util.Map;
 import java.util.Properties;
 /**
- * @author leicui bourne_cui@163.com
+ * @author jiang.huang
  */
-public class KafkaProducer extends Thread
+public abstract class KafkaProducer extends Thread
 {
     private final Producer<Integer, String> producer;
     private final String topic;
@@ -16,29 +17,37 @@ public class KafkaProducer extends Thread
 
     public KafkaProducer(String topic)
     {
+        this(topic,null);
+    }
 
-        props.put("zk.connect", KafkaProperties.zkConnect);
+    public KafkaProducer(String topic, Map<String,String> parms)
+    {
+        if (parms != null && parms.size() > 0 ) {
+            props.putAll(parms);
+        }
         props.put("serializer.class", "kafka.serializer.StringEncoder");
-        props.put("metadata.broker.list", "45.63.22.9:9092");//45.32.9.214:9092,
+        props.put("metadata.broker.list", KafkaProperties.brokerList);//45.32.9.214:9092,
         producer = new Producer<Integer, String>(new ProducerConfig(props));
         this.topic = topic;
     }
+
 
     @Override
     public void run() {
         int messageNo = 1;
         while (true)
         {
-            String messageStr = new String("Message_" + messageNo);
-            System.out.println("Send:" + messageStr);
-            producer.send(new KeyedMessage<Integer, String>(topic, messageStr));
-            messageNo++;
             try {
-                sleep(3000);
+                KeyedMessage message = getMessage(topic, messageNo);
+                producer.send(message);
+                messageNo++;
+                sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                // TODO Auto-generated catch block
             }
         }
     }
+
+    public abstract KeyedMessage<Object, String> getMessage(String topic, int messageNo) throws InterruptedException;
+
 }
