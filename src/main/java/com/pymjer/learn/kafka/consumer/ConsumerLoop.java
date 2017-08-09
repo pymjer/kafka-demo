@@ -1,13 +1,13 @@
 package com.pymjer.learn.kafka.consumer;
 
 import com.pymjer.learn.kafka.KafkaProperties;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +28,6 @@ public class ConsumerLoop implements Runnable {
         this.topics = topics;
         Properties props = new Properties();
         props.put("zookeeper.connect", KafkaProperties.zkConnect);
-        props.put("bootstrap.servers", KafkaProperties.brokerList);
         props.put("group.id", groupId);
         props.put("key.deserializer", StringDeserializer.class.getName());
         props.put("value.deserializer", StringDeserializer.class.getName());
@@ -37,28 +36,6 @@ public class ConsumerLoop implements Runnable {
 
     @Override
     public void run() {
-        try {
-            consumer.subscribe(topics);
-
-            while (true) {
-                ConsumerRecords<String, String> records = consumer.poll(1000);
-                for (ConsumerRecord<String, String> record : records) {
-                    Map<String, Object> data = new HashMap<String, Object>();
-                    data.put("partition", record.partition());
-                    data.put("offset", record.offset());
-                    data.put("value", record.value());
-                    System.out.println(this.id + ": " + data);
-                }
-            }
-        } catch (WakeupException e) {
-            e.printStackTrace();
-        } finally {
-            consumer.close();
-        }
-    }
-
-    public void shutdown() {
-        consumer.wakeup();
     }
 
     public static void main(String[] args) {
@@ -78,7 +55,6 @@ public class ConsumerLoop implements Runnable {
             @Override
             public void run() {
                 for (ConsumerLoop consumer : consumers) {
-                    consumer.shutdown();
                 }
                 executor.shutdown();
                 try {
