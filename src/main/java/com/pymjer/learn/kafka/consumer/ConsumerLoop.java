@@ -28,6 +28,10 @@ public class ConsumerLoop implements Runnable {
         this.topics = topics;
         Properties props = new Properties();
         props.put("zookeeper.connect", KafkaProperties.zkConnect);
+<<<<<<< Updated upstream
+        props.put("bootstrap.servers", KafkaProperties.kafkaServerURL);
+=======
+>>>>>>> Stashed changes
         props.put("group.id", groupId);
         props.put("key.deserializer", StringDeserializer.class.getName());
         props.put("value.deserializer", StringDeserializer.class.getName());
@@ -36,6 +40,28 @@ public class ConsumerLoop implements Runnable {
 
     @Override
     public void run() {
+<<<<<<< Updated upstream
+        try {
+            consumer.subscribe("");
+
+            while (true) {
+/*                ConsumerRecords<String, String> records = consumer.poll(1000);
+                for (ConsumerRecord<String, String> record : records) {
+                    Map<String, Object> data = new HashMap<String, Object>();
+                    data.put("partition", record.partition());
+                    data.put("offset", record.offset());
+                    data.put("value", record.value());
+                    System.out.println(this.id + ": " + data);
+                }*/
+            }
+        }   finally {
+            consumer.close();
+        }
+    }
+
+    public void shutdown() {
+=======
+>>>>>>> Stashed changes
     }
 
     public static void main(String[] args) {
